@@ -4,6 +4,7 @@ gem "ttfunk", "~>1.0.3"
 gem "pdf-reader", "~> 1.2"
 gem "ruby-rc4"
 gem "afm"
+gem "chunky_png", "~>1.1.0"
 
 group :development do
   gem "coderay", "~> 1.0.7"

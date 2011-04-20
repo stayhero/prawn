@@ -24,6 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency('ttfunk', '~>1.0.3')
   spec.add_dependency('ruby-rc4')
   spec.add_dependency('afm')
+  spec.add_dependency('chunky_png', '~>1.1.0')
   spec.add_development_dependency('pdf-inspector', '~> 1.1.0')
   spec.add_development_dependency('coderay', '~> 1.0.7')
   spec.add_development_dependency('rdoc')
