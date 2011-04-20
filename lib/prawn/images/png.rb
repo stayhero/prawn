@@ -39,23 +39,6 @@ module Prawn
         @img_data, @alpha_channel = unfilter_image_data
       end
 
-      # number of color components to each pixel
-      #
-      def colors
-        3
-      end
-
-      def alpha_channel?
-        true
-      end
-
-      # Adobe Reader can't handle 16-bit png channels -- chop off the second
-      # byte (least significant)
-      #
-      def alpha_channel_bits
-        8
-      end
-
       # Build a PDF object representing this image in +document+, and return
       # a Reference to it.
       #
@@ -92,16 +75,11 @@ module Prawn
       end
 
       # Returns the minimum PDF version required to support this image.
+      #
+      # Need transparency for SMask
+      #
       def min_pdf_version
-        if bits > 8
-          # 16-bit color only supported in 1.5+ (ISO 32000-1:2008 8.9.5.1)
-          1.5
-        elsif alpha_channel?
-          # Need transparency for SMask
-          1.4
-        else
-          1.0
-        end
+        1.4
       end
 
       private
