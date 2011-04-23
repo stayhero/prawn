@@ -18,8 +18,7 @@ module Prawn
     # of a PNG image that we need to embed them in a PDF
     #
     class PNG < Image
-      attr_reader :img_data, :alpha_channel
-      attr_reader :width, :height, :bits
+      attr_reader :width, :height
       attr_reader :color_type
       attr_accessor :scaled_width, :scaled_height
 
@@ -35,8 +34,8 @@ module Prawn
         @chunky = ChunkyPNG::Image.from_blob(data)
         @width  = @chunky.width
         @height = @chunky.height
-        @bits   = 8
-        @img_data, @alpha_channel = unfilter_image_data
+        @img_data = extract_image_data
+        @alpha_channel = extract_alpha_channel
       end
 
       # Build a PDF object representing this image in +document+, and return
@@ -52,24 +51,27 @@ module Prawn
           :BitsPerComponent => bits,
           :Length           => @img_data.size,
           :Filter           => :FlateDecode,
-          :ColorSpace       => :DeviceRGB
+          :ColorSpace       => colorspace
         )
 
         # append the actual image data to the object as a stream
-        obj << img_data
-        smask_obj = document.ref!(
-          :Type             => :XObject,
-          :Subtype          => :Image,
-          :Height           => self.height,
-          :Width            => self.width,
-          :BitsPerComponent => 8,
-          :Length           => self.alpha_channel.size,
-          :Filter           => :FlateDecode,
-          :ColorSpace       => :DeviceGray,
-          :Decode           => [0, 1]
-        )
-        smask_obj << alpha_channel
-        obj.data[:SMask] = smask_obj
+        obj << @img_data
+
+        if @alpha_channel
+          smask_obj = document.ref!(
+            :Type             => :XObject,
+            :Subtype          => :Image,
+            :Height           => self.height,
+            :Width            => self.width,
+            :BitsPerComponent => 8,
+            :Length           => @alpha_channel.size,
+            :Filter           => :FlateDecode,
+            :ColorSpace       => :DeviceGray,
+            :Decode           => [0, 1]
+          )
+          smask_obj << @alpha_channel
+          obj.data[:SMask] = smask_obj
+        end
 
         obj
       end
@@ -82,25 +84,37 @@ module Prawn
         1.4
       end
 
+      def bits
+        8
+      end
+
+      def colorspace
+        if @chunky.palette.grayscale?
+          :DeviceGray
+        else
+          :DeviceRGB
+        end
+      end
+
       private
 
-      def unfilter_image_data
-        img_data = ""
-        alpha_channel = ""
-
-        @chunky.pixels.each do |int|
-          img_data << [
-            ChunkyPNG::Color.r(int),
-            ChunkyPNG::Color.g(int),
-            ChunkyPNG::Color.b(int)
-          ].pack("CCC")
-
-          alpha_channel << [
-            ChunkyPNG::Color.a(int)
-          ].pack("C")
+      def extract_image_data
+        if @chunky.palette.grayscale?
+          raw = @chunky.to_grayscale_stream
+        else
+          raw = @chunky.to_rgb_stream
         end
+        Zlib::Deflate.deflate(raw)
+      end
 
-        return Zlib::Deflate.deflate(img_data), Zlib::Deflate.deflate(alpha_channel)
+      def extract_alpha_channel
+        raw = @chunky.to_alpha_channel_stream
+
+        if raw.match(/\A\xFF+\Z/)
+          nil
+        else
+          Zlib::Deflate.deflate(raw)
+        end
       end
     end
   end
