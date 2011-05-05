@@ -19,7 +19,7 @@ module Prawn
     #
     class PNG < Image
       attr_reader :img_data, :alpha_channel
-      attr_reader :width, :height, :color_type
+      attr_reader :width, :height, :bits
       attr_accessor :scaled_width, :scaled_height
 
       def self.can_render?(image_blob)
@@ -35,9 +35,9 @@ module Prawn
         @ds     = ChunkyPNG::Datastream.from_blob(data)
         @width  = @chunky.width
         @height = @chunky.height
-        @color_type = extract_color_type
+        @bits   = extract_bits
 
-        case @color_type
+        case color_type
         when 0,2,3
           @img_data      = filtered_image_data
           @alpha_channel = nil
@@ -76,6 +76,9 @@ module Prawn
         # append the actual image data to the object as a stream
         obj << @img_data
 
+        # add in any transparent mask data we have
+        obj.data[:Mask] = mask if mask
+
         if alpha_channel?
           smask_obj = document.ref!(
             :Type             => :XObject,
@@ -108,10 +111,6 @@ module Prawn
         1.4
       end
 
-      def bits
-        8
-      end
-
       # number of color components to each pixel
       #
       def colors
@@ -122,6 +121,13 @@ module Prawn
           return 3
         end
       end
+
+      # return the PNG color type of this image
+      #
+      def color_type
+        @color_type ||= @ds.header_chunk.color
+      end
+
 
       def colorspace(document)
         @colorspace ||= if @ds.palette_chunk
@@ -138,10 +144,31 @@ module Prawn
 
       private
 
-      # return the PNG color type of this image
-      #
-      def extract_color_type
-        @ds.header_chunk.color
+      def mask
+        if @ds.transparency_chunk.nil?
+          puts "no transparency chunk"
+          return nil
+        end
+
+        @mask ||= case self.color_type
+                  when 0 then
+                    val = @ds.transparency_chunk.content.unpack("n").first
+                    [val, val]
+                  when 3 then
+                    array = @ds.transparency_chunk.content.unpack("C*")
+                    array << 255 while array.size < 255
+                    #  array << 255
+                    #end
+                    array.map { |val| [ val, val ] }
+                  else
+                    nil
+                  end
+      end
+
+      def extract_bits
+        bits ||= @ds.header_chunk.depth
+        bits = 8 if bits > 8
+        bits
       end
 
       # unfilters the compressed PNG data and extracts raw pixel data WITHOUT
