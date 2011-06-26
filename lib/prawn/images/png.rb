@@ -144,8 +144,6 @@ module Prawn
                   when 3 then
                     array = @ds.transparency_chunk.content.unpack("C*")
                     array << 255 while array.size < 255
-                    #  array << 255
-                    #end
                     array.map { |val| [ val, val ] }
                   else
                     nil
