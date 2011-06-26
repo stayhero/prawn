@@ -91,8 +91,7 @@ describe "the image() function" do
     @pdf.image "#{Prawn::DATADIR}/images/16bit.png"
 
     output = @pdf.render
-    output.should =~ /\/BitsPerComponent 16/
-    output.should =~ /\/BitsPerComponent 8/
+    output.scan(/\/BitsPerComponent 8/).size.should == 2
   end
 
   it "should flow an image to a new page if it will not fit on a page" do
