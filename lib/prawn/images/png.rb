@@ -145,10 +145,7 @@ module Prawn
       private
 
       def mask
-        if @ds.transparency_chunk.nil?
-          puts "no transparency chunk"
-          return nil
-        end
+        return nil if @ds.transparency_chunk.nil?
 
         @mask ||= case self.color_type
                   when 0 then
