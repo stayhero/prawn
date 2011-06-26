@@ -153,19 +153,21 @@ module Prawn
       def smask(document)
         return nil unless alpha_channel?
 
-        obj = document.ref!(
-                :Type             => :XObject,
-                :Subtype          => :Image,
-                :Height           => self.height,
-                :Width            => self.width,
-                :BitsPerComponent => 8,
-                :Length           => @alpha_channel.size,
-                :Filter           => :FlateDecode,
-                :ColorSpace       => :DeviceGray,
-                :Decode           => [0, 1]
-            )
-        obj << @alpha_channel
-        obj
+        @smask ||= begin
+                     obj = document.ref!(
+                       :Type             => :XObject,
+                       :Subtype          => :Image,
+                       :Height           => self.height,
+                       :Width            => self.width,
+                       :BitsPerComponent => 8,
+                       :Length           => @alpha_channel.size,
+                       :Filter           => :FlateDecode,
+                       :ColorSpace       => :DeviceGray,
+                       :Decode           => [0, 1]
+                     )
+                     obj << @alpha_channel
+                     obj
+                   end
       end
 
       def extract_bits
