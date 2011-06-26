@@ -76,28 +76,18 @@ module Prawn
         # append the actual image data to the object as a stream
         obj << @img_data
 
-        # add in any transparent mask data we have
-        obj.data[:Mask] = mask if mask
-
-        if alpha_channel?
-          smask_obj = document.ref!(
-            :Type             => :XObject,
-            :Subtype          => :Image,
-            :Height           => self.height,
-            :Width            => self.width,
-            :BitsPerComponent => 8,
-            :Length           => @alpha_channel.size,
-            :Filter           => :FlateDecode,
-            :ColorSpace       => :DeviceGray,
-            :Decode           => [0, 1]
-          )
-          smask_obj << @alpha_channel
-          obj.data[:SMask] = smask_obj
-        else
+        if [0,2,3].include?(color_type)
           obj.data[:DecodeParms] = {:Predictor => 15,
                                     :Colors    => self.colors,
                                     :BitsPerComponent => self.bits,
                                     :Columns   => self.width}
+        end
+
+        # add in any transparent mask data we have
+        if [0,2,3].include?(color_type) && mask
+          obj.data[:Mask] = mask
+        elsif [4,6].include?(color_type) && smask(document)
+          obj.data[:SMask] = smask(document)
         end
 
         obj
@@ -160,6 +150,24 @@ module Prawn
                   else
                     nil
                   end
+      end
+
+      def smask(document)
+        return nil unless alpha_channel?
+
+        obj = document.ref!(
+                :Type             => :XObject,
+                :Subtype          => :Image,
+                :Height           => self.height,
+                :Width            => self.width,
+                :BitsPerComponent => 8,
+                :Length           => @alpha_channel.size,
+                :Filter           => :FlateDecode,
+                :ColorSpace       => :DeviceGray,
+                :Decode           => [0, 1]
+            )
+        obj << @alpha_channel
+        obj
       end
 
       def extract_bits
