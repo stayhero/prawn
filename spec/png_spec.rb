@@ -274,7 +274,7 @@ describe "When reading a 16bit RGB+alpha PNG file (color type 6)" do
 
     png.width.should == 32
     png.height.should == 32
-    png.bits.should == 16
+    png.bits.should == 8
     png.color_type.should == 6
   end
 
