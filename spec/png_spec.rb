@@ -152,7 +152,7 @@ describe "When reading an indexed color PNG file (color type 3)" do
 
   it "should extract the raw image data with exactly 1 byte per pixel plus 1 byte per row" do
     png = Prawn::Images::PNG.new(@img_data)
-    Zlib::Inflate.new.inflate(png.img_data).bytesize.should == 3264
+    Zlib::Inflate.new.inflate(png.img_data).bytesize.should == 30200
   end
 
   it "should read the image data chunk correctly" do
