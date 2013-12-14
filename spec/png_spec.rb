@@ -34,7 +34,7 @@ describe "When reading a greyscale PNG file (color type 0)" do
   it "should read the image data chunk correctly" do
     png = Prawn::Images::PNG.new(@img_data)
     data = Zlib::Inflate.inflate(File.binread(@data_filename))
-    png.img_data.should == data
+    Zlib::Inflate.inflate(png.img_data).should == data
   end
 
   it "should have no alpha channel" do
@@ -96,7 +96,7 @@ describe "When reading an RGB PNG file (color type 2)" do
   it "should read the image data chunk correctly" do
     png = Prawn::Images::PNG.new(@img_data)
     data = Zlib::Inflate.inflate(File.binread(@data_filename))
-    png.img_data.should == data
+    Zlib::Inflate.inflate(png.img_data).should == data
   end
 
   it "should have no alpha channel" do
@@ -158,7 +158,7 @@ describe "When reading an indexed color PNG file (color type 3)" do
   it "should read the image data chunk correctly" do
     png = Prawn::Images::PNG.new(@img_data)
     data = Zlib::Inflate.inflate(File.binread(@data_filename))
-    png.img_data.should == data
+    Zlib::Inflate.inflate(png.img_data).should == data
   end
 
   it "should have no alpha channel" do
@@ -238,8 +238,8 @@ describe "When reading an RGB+alpha PNG file (color type 6)" do
 
   it "should correctly return the raw image data (with no alpha channel) from the image data chunk" do
     png = Prawn::Images::PNG.new(@img_data)
-    data = File.binread(@data_filename)
-    png.img_data.should == data
+    data = Zlib::Inflate.inflate(File.binread(@data_filename))
+    Zlib::Inflate.inflate(png.img_data).should == data
   end
 
   it "should have an alpha channel" do
@@ -254,8 +254,8 @@ describe "When reading an RGB+alpha PNG file (color type 6)" do
 
   it "should correctly extract the alpha channel data from the image data chunk" do
     png = Prawn::Images::PNG.new(@img_data)
-    data = File.binread(@alpha_data_filename)
-    png.alpha_channel.should == data
+    data = Zlib::Inflate.inflate(File.binread(@alpha_data_filename))
+    Zlib::Inflate.inflate(png.alpha_channel).should == data
   end
 end
 
