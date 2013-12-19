@@ -212,6 +212,11 @@ module Prawn
         def remember_this_fragment_for_backward_looking_ops
           @previous_fragment = @fragment_output.dup
           pf = @previous_fragment
+          puts @previous_fragment.encoding
+          puts break_chars.encoding
+          if @previous_fragment.encoding.to_s == 'ASCII-8BIT' && break_chars.encoding.to_s == 'UTF-8'
+            puts "ERROR! ONLY FOR DEBUGGING"
+          end
           @previous_fragment_ended_with_breakable = pf =~ /[#{break_chars}]$/
           last_word = pf.slice(/[^#{break_chars}]*$/)
           last_word_length = last_word.nil? ? 0 : last_word.length
